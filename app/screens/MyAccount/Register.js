@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { StyleSheet, View } from "react-native";
-import { Button } from "react-native-elements";
+import { Button, Text } from "react-native-elements";
 
 import t from "tcomb-form-native";
 const Form = t.form.Form;
@@ -18,7 +18,8 @@ export default class Register extends Component {
         email: "",
         password: "",
         passwordConfirmation: ""
-      }
+      },
+      formErrorMessage: ""
     };
   }
 
@@ -29,12 +30,17 @@ export default class Register extends Component {
       const validate = this.refs.registerForm.getValue();
 
       if (validate) {
-        console.log("Formulario Correcto");
+        this.setState({ formErrorMessage: "" });
+        console.log("Registro Correcto");
       } else {
-        console.log("Formulario Invalido");
+        this.setState({
+          formErrorMessage: "Formulario Invalido"
+        });
       }
     } else {
-      console.log("Las contraseñas no son iguales");
+      this.setState({
+        formErrorMessage: "Las contraseñas no son iguales"
+      });
     }
   };
 
@@ -45,7 +51,7 @@ export default class Register extends Component {
   };
 
   render() {
-    const { registerStruct, registerOptions } = this.state;
+    const { registerStruct, registerOptions, formErrorMessage } = this.state;
 
     return (
       <View style={styles.viewBody}>
@@ -56,7 +62,12 @@ export default class Register extends Component {
           value={this.state.formData}
           onChange={formValue => this.onChangeFormRegister(formValue)}
         />
-        <Button title="Unirse" onPress={() => this.register()} />
+        <Button
+          buttonStyle={styles.buttonRegisterContainer}
+          title="Unirse"
+          onPress={() => this.register()}
+        />
+        <Text style={styles.formErrorMessage}>{formErrorMessage}</Text>
       </View>
     );
   }
@@ -68,5 +79,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginLeft: 40,
     marginRight: 40
+  },
+  buttonRegisterContainer: {
+    backgroundColor: "#00a680",
+    marginTop: 20,
+    marginLeft: 10,
+    marginRight: 10
+  },
+  formErrorMessage: {
+    color: "#f00",
+    textAlign: "center",
+    marginTop: 30
   }
 });
