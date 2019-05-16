@@ -1,10 +1,13 @@
 import React, { Component } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Text } from "react-native-elements";
+import Toast, { DURATION } from "react-native-easy-toast";
 
 import t from "tcomb-form-native";
 const Form = t.form.Form;
 import { RegisterStruct, RegisterOptions } from "../../forms/Register";
+
+import * as firebase from "firebase";
 
 export default class Register extends Component {
   constructor() {
@@ -31,7 +34,17 @@ export default class Register extends Component {
 
       if (validate) {
         this.setState({ formErrorMessage: "" });
-        console.log("Registro Correcto");
+        firebase
+          .auth()
+          .createUserWithEmailAndPassword(validate.email, validate.password)
+          .then(resolve => {
+            this.refs.toast.show("Registro Correcto", 200, () => {
+              this.props.navigation.goBack();
+            });
+          })
+          .catch(err => {
+            this.refs.toast.show("El email ya esta en uso.", 2500);
+          });
       } else {
         this.setState({
           formErrorMessage: "Formulario Invalido"
@@ -68,6 +81,15 @@ export default class Register extends Component {
           onPress={() => this.register()}
         />
         <Text style={styles.formErrorMessage}>{formErrorMessage}</Text>
+        <Toast
+          ref="toast"
+          position="bottom"
+          positionValue={250}
+          fadeInDuration={1000}
+          fadeOutDuration={1000}
+          opacity={0.8}
+          textStyle={{ color: "#fff" }}
+        />
       </View>
     );
   }
