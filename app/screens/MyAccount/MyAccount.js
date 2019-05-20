@@ -13,11 +13,15 @@ export default class MyAccount extends Component {
     };
   }
 
-  componentDidMount() {
-    firebase.auth().onAuthStateChanged(user => {
+  async componentDidMount() {
+    await firebase.auth().onAuthStateChanged(user => {
       if (user) {
         this.setState({
           login: true
+        });
+      } else {
+        this.setState({
+          login: false
         });
       }
     });
@@ -27,11 +31,20 @@ export default class MyAccount extends Component {
     this.props.navigation.navigate(nameScreen);
   };
 
+  logout = () => {
+    firebase.auth().signOut();
+  };
+
   render() {
     const { login } = this.state;
 
     if (login) {
-      return <Text>Estas logeado correctamente...</Text>;
+      return (
+        <View style={styles.viewBody}>
+          <Text>Estas logeado correctamente...</Text>
+          <Button title="Cerrar sesión" onPress={() => this.logout()} />
+        </View>
+      );
     } else {
       return (
         <View style={styles.viewBody}>
