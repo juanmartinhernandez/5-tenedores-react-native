@@ -1,10 +1,13 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
 import { Image, Button } from "react-native-elements";
+import Toast, { DURATION } from "react-native-easy-toast";
 
 import t from "tcomb-form-native";
 const Form = t.form.Form;
 import { LoginStruct, LoginOptions } from "../../forms/Login";
+
+import * as firebase from "firebase";
 
 export default class Login extends Component {
   constructor() {
@@ -30,7 +33,18 @@ export default class Login extends Component {
       });
     } else {
       this.setState({ loginErrorMessage: "" });
-      console.log("Logeando...");
+
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(validate.email, validate.password)
+        .then(() => {
+          this.refs.toastLogin.show("Login correcto", 200, () => {
+            this.props.navigation.goBack();
+          });
+        })
+        .catch(error => {
+          this.refs.toastLogin.show("Login incorrecto revise sus datos", 2500);
+        });
     }
   };
 
@@ -69,6 +83,16 @@ export default class Login extends Component {
 
           <Text style={styles.loginErrorMessage}>{loginErrorMessage}</Text>
         </View>
+
+        <Toast
+          ref="toastLogin"
+          position="bottom"
+          positionValue={400}
+          fadeInDuration={1000}
+          fadeOutDuration={1000}
+          opacity={0.8}
+          textStyle={{ color: "#fff" }}
+        />
       </View>
     );
   }
