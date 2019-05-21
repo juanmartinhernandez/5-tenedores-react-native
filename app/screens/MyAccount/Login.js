@@ -111,6 +111,16 @@ export default class Login extends Component {
             onPress={() => this.login()}
           />
 
+          <Text style={styles.textRegister}>
+            ¿Aún no tienes una cuenta?{" "}
+            <Text
+              style={styles.btnRegister}
+              onPress={() => this.props.navigation.navigate("Register")}
+            >
+              Regístrate
+            </Text>
+          </Text>
+
           <Text style={styles.loginErrorMessage}>{loginErrorMessage}</Text>
 
           <Divider style={styles.divider} />
@@ -140,8 +150,8 @@ export default class Login extends Component {
 const styles = StyleSheet.create({
   viewBody: {
     flex: 1,
-    marginLeft: 40,
-    marginRight: 40,
+    marginLeft: 30,
+    marginRight: 30,
     marginTop: 40
   },
   containerLogo: {
@@ -163,10 +173,20 @@ const styles = StyleSheet.create({
   loginErrorMessage: {
     color: "#f00",
     textAlign: "center",
-    marginTop: 20
+    marginTop: 20,
+    marginBottom: 20
   },
   divider: {
     backgroundColor: "#00a680",
     marginBottom: 20
+  },
+  textRegister: {
+    marginTop: 15,
+    marginLeft: 10,
+    marginRight: 10
+  },
+  btnRegister: {
+    color: "#00a680",
+    fontWeight: "bold"
   }
 });
