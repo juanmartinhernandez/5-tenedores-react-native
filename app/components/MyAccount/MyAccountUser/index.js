@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Text } from "react-native";
 
+import UserInfo from "./UserInfo";
+
 export default class MyAccountUser extends Component {
   constructor(props) {
     super(props);
@@ -9,7 +11,7 @@ export default class MyAccountUser extends Component {
   render() {
     return (
       <View style={styles.viewBody}>
-        <Text>My Account Usser...</Text>
+        <UserInfo />
       </View>
     );
   }
@@ -19,7 +21,6 @@ const styles = StyleSheet.create({
   viewBody: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
     paddingLeft: 30,
     paddingRight: 30
   }
