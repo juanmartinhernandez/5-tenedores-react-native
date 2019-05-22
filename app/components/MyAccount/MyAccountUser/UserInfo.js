@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { StyleSheet, View, Text } from "react-native";
 import { Avatar } from "react-native-elements";
 
+import UpdateUserInfo from "./UpdateUserInfo";
+
 import * as firebase from "firebase";
 
 export default class UserInfo extends Component {
@@ -36,17 +38,20 @@ export default class UserInfo extends Component {
     const { displayName, email, photoURL } = this.state.userInfo;
 
     return (
-      <View style={styles.viewUserInfo}>
-        <Avatar
-          rounded
-          size="large"
-          source={{
-            uri: this.checkUserAvatar(photoURL)
-          }}
-          containerStyle={styles.userInfoAvatar}
-        />
-        <Text style={styles.displayName}>{displayName}</Text>
-        <Text>{email}</Text>
+      <View>
+        <View style={styles.viewUserInfo}>
+          <Avatar
+            rounded
+            size="large"
+            source={{
+              uri: this.checkUserAvatar(photoURL)
+            }}
+            containerStyle={styles.userInfoAvatar}
+          />
+          <Text style={styles.displayName}>{displayName}</Text>
+          <Text>{email}</Text>
+        </View>
+        <UpdateUserInfo />
       </View>
     );
   }
@@ -55,8 +60,11 @@ export default class UserInfo extends Component {
 const styles = StyleSheet.create({
   viewUserInfo: {
     alignItems: "center",
+    justifyContent: "center",
     flexDirection: "row",
-    marginTop: 30
+    backgroundColor: "#f2f2f2",
+    paddingTop: 30,
+    paddingBottom: 30
   },
   userInfoAvatar: {
     marginRight: 20
