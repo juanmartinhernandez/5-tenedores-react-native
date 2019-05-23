@@ -7,10 +7,11 @@ import UpdateUserInfo from "./UpdateUserInfo";
 import * as firebase from "firebase";
 
 export default class UserInfo extends Component {
-  constructor(state) {
-    super(state);
+  constructor(props) {
+    super(props);
 
     this.state = {
+      ...props,
       userInfo: {}
     };
   }
@@ -34,6 +35,26 @@ export default class UserInfo extends Component {
       : "https://api.adorable.io/avatars/285/abott@adorable.png";
   };
 
+  updateUserDisplayName = async newDisplayName => {
+    const update = {
+      displayName: newDisplayName
+    };
+    await firebase.auth().currentUser.updateProfile(update);
+
+    this.getUserInfo();
+  };
+
+  returnUpdateUserInfoComponent = userInfoData => {
+    if (userInfoData.hasOwnProperty("uid")) {
+      return (
+        <UpdateUserInfo
+          userInfo={this.state.userInfo}
+          updateUserDisplayName={this.updateUserDisplayName}
+        />
+      );
+    }
+  };
+
   render() {
     const { displayName, email, photoURL } = this.state.userInfo;
 
@@ -48,10 +69,12 @@ export default class UserInfo extends Component {
             }}
             containerStyle={styles.userInfoAvatar}
           />
-          <Text style={styles.displayName}>{displayName}</Text>
-          <Text>{email}</Text>
+          <View>
+            <Text style={styles.displayName}>{displayName}</Text>
+            <Text>{email}</Text>
+          </View>
         </View>
-        <UpdateUserInfo />
+        {this.returnUpdateUserInfoComponent(this.state.userInfo)}
       </View>
     );
   }
