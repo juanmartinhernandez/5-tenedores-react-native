@@ -3,6 +3,7 @@ import { StyleSheet, View, Text } from "react-native";
 import { ListItem } from "react-native-elements";
 
 import OverlayOneInput from "../../Elements/OverlayOneInput";
+import OverlayTwoInputs from "../../Elements/OverlayTwoInputs";
 
 export default class UpdateUserInfo extends Component {
   constructor(props) {
@@ -33,7 +34,13 @@ export default class UpdateUserInfo extends Component {
           iconColorLeft: "#ccc",
           iconNameRight: "chevron-right",
           iconColorRight: "#ccc",
-          onPress: () => console.log("Ha realizado click en Cambiar Email")
+          onPress: () =>
+            this.openOverlayTwoInputs(
+              "Email",
+              "Password",
+              props.userInfo.email,
+              this.updateUserEmail
+            )
         },
         {
           title: "Cambiar Contraseña",
@@ -65,6 +72,38 @@ export default class UpdateUserInfo extends Component {
           placeholder={placeholder}
           updateFunction={updateFunction}
           inputValue={inputValue}
+        />
+      )
+    });
+  };
+
+  updateUserEmail = async (newEmail, password) => {
+    const emailOld = this.props.userInfo.email;
+
+    if (emailOld != newEmail) {
+      this.state.updateUserEmail(newEmail, password);
+    }
+
+    this.setState({
+      overlayComponent: null
+    });
+  };
+
+  openOverlayTwoInputs = (
+    placeholderOne,
+    placeholderTwo,
+    inputValueOne,
+    updateFunction
+  ) => {
+    this.setState({
+      overlayComponent: (
+        <OverlayTwoInputs
+          isVisibleOverlay={true}
+          placeholderOne={placeholderOne}
+          placeholderTwo={placeholderTwo}
+          inputValueOne={inputValueOne}
+          inputValueTwo=""
+          updateFunction={updateFunction}
         />
       )
     });

@@ -44,12 +44,19 @@ export default class UserInfo extends Component {
     this.getUserInfo();
   };
 
+  updateUserEmail = async (newEmail, password) => {
+    console.log("Estamos en UserInfo");
+    console.log("newEmail:", newEmail);
+    console.log("password:", password);
+  };
+
   returnUpdateUserInfoComponent = userInfoData => {
     if (userInfoData.hasOwnProperty("uid")) {
       return (
         <UpdateUserInfo
           userInfo={this.state.userInfo}
           updateUserDisplayName={this.updateUserDisplayName}
+          updateUserEmail={this.updateUserEmail}
         />
       );
     }
