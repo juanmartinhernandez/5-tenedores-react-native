@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Text } from "react-native";
 import { Avatar } from "react-native-elements";
+import Toast, { DURATION } from "react-native-easy-toast";
 
 import UpdateUserInfo from "./UpdateUserInfo";
 
@@ -29,6 +30,15 @@ export default class UserInfo extends Component {
     });
   };
 
+  reauthenticate = currentPassword => {
+    const user = firebase.auth().currentUser;
+    const credentials = firebase.auth.EmailAuthProvider.credential(
+      user.email,
+      currentPassword
+    );
+    return user.reauthenticateWithCredential(credentials);
+  };
+
   checkUserAvatar = photoURL => {
     return photoURL
       ? photoURL
@@ -45,9 +55,27 @@ export default class UserInfo extends Component {
   };
 
   updateUserEmail = async (newEmail, password) => {
-    console.log("Estamos en UserInfo");
-    console.log("newEmail:", newEmail);
-    console.log("password:", password);
+    this.reauthenticate(password)
+      .then(() => {
+        const user = firebase.auth().currentUser;
+        user
+          .updateEmail(newEmail)
+          .then(() => {
+            this.refs.toast.show(
+              "Email actualizado, vuelve a iniciar sesión",
+              50,
+              () => {
+                firebase.auth().signOut();
+              }
+            );
+          })
+          .catch(err => {
+            this.refs.toast.show(err, 1500);
+          });
+      })
+      .catch(err => {
+        this.refs.toast.show("Tu contraseña no es correcta", 1500);
+      });
   };
 
   returnUpdateUserInfoComponent = userInfoData => {
@@ -82,6 +110,16 @@ export default class UserInfo extends Component {
           </View>
         </View>
         {this.returnUpdateUserInfoComponent(this.state.userInfo)}
+
+        <Toast
+          ref="toast"
+          position="bottom"
+          positionValue={250}
+          fadeInDuration={1000}
+          fadeOutDuration={1000}
+          opacity={0.8}
+          textStyle={{ color: "#fff" }}
+        />
       </View>
     );
   }
