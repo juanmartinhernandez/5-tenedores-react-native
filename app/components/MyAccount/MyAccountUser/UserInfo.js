@@ -7,6 +7,8 @@ import UpdateUserInfo from "./UpdateUserInfo";
 
 import * as firebase from "firebase";
 
+import { Permissions, ImagePicker } from "expo";
+
 export default class UserInfo extends Component {
   constructor(props) {
     super(props);
@@ -90,6 +92,28 @@ export default class UserInfo extends Component {
     }
   };
 
+  changeAvatarUser = async () => {
+    const resultPermision = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+    if (resultPermision.status === "denied") {
+      this.refs.toast.show(
+        "Es necesario aceptar los permisos de la galeria",
+        1500
+      );
+    } else {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [4, 3]
+      });
+
+      if (result.cancelled) {
+        this.refs.toast.show("Has cerrado la galeria de imagenes", 1500);
+      } else {
+        console.log(result);
+      }
+    }
+  };
+
   render() {
     const { displayName, email, photoURL } = this.state.userInfo;
 
@@ -99,6 +123,8 @@ export default class UserInfo extends Component {
           <Avatar
             rounded
             size="large"
+            showEditButton
+            onEditPress={() => this.changeAvatarUser()}
             source={{
               uri: this.checkUserAvatar(photoURL)
             }}
