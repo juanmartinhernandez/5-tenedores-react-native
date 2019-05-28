@@ -3,11 +3,11 @@ import { StyleSheet, View, Text } from "react-native";
 
 import ActionButton from "react-native-action-button";
 
-export default class Home extends Component {
+export default class Restaurants extends Component {
   render() {
     return (
       <View style={styles.viewBody}>
-        <Text>Home Screen...</Text>
+        <Text>Restaurants Screen...</Text>
 
         <ActionButton
           buttonColor="#00a680"
