@@ -81,10 +81,34 @@ export default class UserInfo extends Component {
   };
 
   updateUserPassword = async (currentPassword, newPassword) => {
-    console.log("Estamos en UserInfo");
+    this.reauthenticate(currentPassword)
+      .then(() => {
+        const user = firebase.auth().currentUser;
 
-    console.log("currentPassword:", currentPassword);
-    console.log("newPassword:", newPassword);
+        user
+          .updatePassword(newPassword)
+          .then(() => {
+            this.refs.toast.show(
+              "Contraseña actualizada correctamente, vuelve a iniciar sesión",
+              50,
+              () => {
+                firebase.auth().signOut();
+              }
+            );
+          })
+          .catch(() => {
+            this.refs.toast.show(
+              "Error del servidor, intentelo mas tarde",
+              1500
+            );
+          });
+      })
+      .catch(() => {
+        this.refs.toast.show(
+          "Tu contraseña actual introducida no es correcta",
+          1500
+        );
+      });
   };
 
   returnUpdateUserInfoComponent = userInfoData => {
