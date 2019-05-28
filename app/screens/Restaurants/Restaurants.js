@@ -4,6 +4,10 @@ import { StyleSheet, View, Text } from "react-native";
 import ActionButton from "react-native-action-button";
 
 export default class Restaurants extends Component {
+  goToScreen = nameScreen => {
+    this.props.navigation.navigate(nameScreen);
+  };
+
   render() {
     return (
       <View style={styles.viewBody}>
@@ -11,7 +15,7 @@ export default class Restaurants extends Component {
 
         <ActionButton
           buttonColor="#00a680"
-          onPress={() => console.log("Open Add Restaurant")}
+          onPress={() => this.goToScreen("AddRestaurant")}
         />
       </View>
     );
