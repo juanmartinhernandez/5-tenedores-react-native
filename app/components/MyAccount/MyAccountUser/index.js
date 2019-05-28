@@ -10,11 +10,16 @@ export default class MyAccountUser extends Component {
 
   render() {
     return (
-      <View>
+      <View style={styles.viewUserAccount}>
         <UserInfo />
       </View>
     );
   }
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  viewUserAccount: {
+    height: "100%",
+    backgroundColor: "#f2f2f2"
+  }
+});

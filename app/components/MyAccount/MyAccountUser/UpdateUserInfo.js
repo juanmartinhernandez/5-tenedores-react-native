@@ -88,7 +88,7 @@ export default class UpdateUserInfo extends Component {
   updateUserEmail = async (newEmail, password) => {
     const emailOld = this.props.userInfo.email;
 
-    if (emailOld != newEmail) {
+    if (emailOld != newEmail && password) {
       this.state.updateUserEmail(newEmail, password);
     }
 

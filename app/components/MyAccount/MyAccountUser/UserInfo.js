@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Text } from "react-native";
-import { Avatar } from "react-native-elements";
+import { Avatar, Button } from "react-native-elements";
 import Toast, { DURATION } from "react-native-easy-toast";
 
 import UpdateUserInfo from "./UpdateUserInfo";
@@ -228,7 +228,15 @@ export default class UserInfo extends Component {
             <Text>{email}</Text>
           </View>
         </View>
+
         {this.returnUpdateUserInfoComponent(this.state.userInfo)}
+
+        <Button
+          title="Cerrar Sesión"
+          onPress={() => firebase.auth().signOut()}
+          buttonStyle={styles.btnCloseSession}
+          titleStyle={styles.btnCloseSessionText}
+        />
 
         <Toast
           ref="toast"
@@ -258,5 +266,19 @@ const styles = StyleSheet.create({
   },
   displayName: {
     fontWeight: "bold"
+  },
+  btnCloseSession: {
+    marginTop: 30,
+    borderRadius: 0,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#e3e3e3",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e3e3e3",
+    paddingTop: 10,
+    paddingBottom: 10
+  },
+  btnCloseSessionText: {
+    color: "#00a680"
   }
 });
