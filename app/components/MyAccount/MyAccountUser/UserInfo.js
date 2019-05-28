@@ -92,6 +92,15 @@ export default class UserInfo extends Component {
     }
   };
 
+  updateUserPhotoURL = async photoUri => {
+    const update = {
+      photoURL: photoUri
+    };
+    await firebase.auth().currentUser.updateProfile(update);
+
+    this.getUserInfo();
+  };
+
   changeAvatarUser = async () => {
     const resultPermision = await Permissions.askAsync(Permissions.CAMERA_ROLL);
 
@@ -109,9 +118,61 @@ export default class UserInfo extends Component {
       if (result.cancelled) {
         this.refs.toast.show("Has cerrado la galeria de imagenes", 1500);
       } else {
-        console.log(result);
+        const { uid } = this.state.userInfo;
+
+        this.uploadImage(result.uri, uid)
+          .then(resolve => {
+            this.refs.toast.show("Avatar actualizado correctamente");
+
+            firebase
+              .storage()
+              .ref("avatar/" + uid)
+              .getDownloadURL()
+              .then(resolve => {
+                this.updateUserPhotoURL(resolve);
+              })
+              .catch(erro => {
+                this.refs.toast.show(
+                  "Error al recuperar el avatar del servidor"
+                );
+              });
+          })
+          .catch(error => {
+            this.refs.toast.show(
+              "Error al actualizar el avatar, intentelo mas tarde."
+            );
+          });
       }
     }
+  };
+
+  uploadImage = async (uri, nameImage) => {
+    return new Promise((resolve, reject) => {
+      let xhr = new XMLHttpRequest();
+      xhr.onerror = reject;
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+          resolve(xhr.response);
+        }
+      };
+
+      xhr.open("GET", uri);
+      xhr.responseType = "blob";
+      xhr.send();
+    })
+      .then(async resolve => {
+        let ref = firebase
+          .storage()
+          .ref()
+          .child("avatar/" + nameImage);
+        return await ref.put(resolve);
+      })
+      .catch(error => {
+        this.refs.toast.show(
+          "Error al subir la imagen al sevridor, intentelo mas tarde",
+          1500
+        );
+      });
   };
 
   render() {
