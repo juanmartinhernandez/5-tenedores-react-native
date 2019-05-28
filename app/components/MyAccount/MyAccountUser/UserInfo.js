@@ -80,6 +80,13 @@ export default class UserInfo extends Component {
       });
   };
 
+  updateUserPassword = async (currentPassword, newPassword) => {
+    console.log("Estamos en UserInfo");
+
+    console.log("currentPassword:", currentPassword);
+    console.log("newPassword:", newPassword);
+  };
+
   returnUpdateUserInfoComponent = userInfoData => {
     if (userInfoData.hasOwnProperty("uid")) {
       return (
@@ -87,6 +94,7 @@ export default class UserInfo extends Component {
           userInfo={this.state.userInfo}
           updateUserDisplayName={this.updateUserDisplayName}
           updateUserEmail={this.updateUserEmail}
+          updateUserPassword={this.updateUserPassword}
         />
       );
     }

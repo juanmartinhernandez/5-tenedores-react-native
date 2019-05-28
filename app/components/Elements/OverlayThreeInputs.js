@@ -91,7 +91,7 @@ export default class OverlayThreeInputs extends Component {
           />
           <Button
             buttonStyle={styles.buttonUpdate}
-            title="Cambiar contraseña"
+            title="Actualizar"
             onPress={() => this.update()}
           />
           <Icon

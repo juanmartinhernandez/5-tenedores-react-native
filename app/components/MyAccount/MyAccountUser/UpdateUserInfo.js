@@ -1,9 +1,11 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Text } from "react-native";
 import { ListItem } from "react-native-elements";
+import Toast, { DURATION } from "react-native-easy-toast";
 
 import OverlayOneInput from "../../Elements/OverlayOneInput";
 import OverlayTwoInputs from "../../Elements/OverlayTwoInputs";
+import OverlayThreeInputs from "../../Elements/OverlayThreeInputs";
 
 export default class UpdateUserInfo extends Component {
   constructor(props) {
@@ -49,7 +51,13 @@ export default class UpdateUserInfo extends Component {
           iconColorLeft: "#ccc",
           iconNameRight: "chevron-right",
           iconColorRight: "#ccc",
-          onPress: () => console.log("Ha realizado click en Cambiar Contraseña")
+          onPress: () =>
+            this.openOverlayThreeInputs(
+              "Tu contraseña",
+              "Nueva contraseña",
+              "Repetir nueva contraseña",
+              this.updateUserPassword
+            )
         }
       ]
     };
@@ -110,6 +118,55 @@ export default class UpdateUserInfo extends Component {
     });
   };
 
+  updateUserPassword = async (
+    currentPassword,
+    newPassword,
+    repeatNewPassword
+  ) => {
+    if (currentPassword && newPassword && repeatNewPassword) {
+      if (newPassword === repeatNewPassword) {
+        if (currentPassword === newPassword) {
+          this.refs.toast.show(
+            "La nueva contraseña no puede ser igual a la actual"
+          );
+        } else {
+          this.state.updateUserPassword(currentPassword, newPassword);
+        }
+      } else {
+        this.refs.toast.show("Las nuevas contraseñas tienen que ser iguales");
+      }
+    } else {
+      this.refs.toast.show("Tienes que rellenar todos los campos");
+    }
+
+    this.setState({
+      overlayComponent: null
+    });
+  };
+
+  openOverlayThreeInputs = (
+    placeholderOne,
+    placeholderTwo,
+    placeholderThree,
+    updateFunction
+  ) => {
+    this.setState({
+      overlayComponent: (
+        <OverlayThreeInputs
+          isVisibleOverlay={true}
+          placeholderOne={placeholderOne}
+          placeholderTwo={placeholderTwo}
+          placeholderThree={placeholderThree}
+          inputValueOne=""
+          inputValueTwo=""
+          inputValueThree=""
+          isPassword={true}
+          updateFunction={updateFunction}
+        />
+      )
+    });
+  };
+
   render() {
     const { menuItems, overlayComponent } = this.state;
 
@@ -134,6 +191,16 @@ export default class UpdateUserInfo extends Component {
           />
         ))}
         {overlayComponent}
+
+        <Toast
+          ref="toast"
+          position="center"
+          positionValue={0}
+          fadeInDuration={1000}
+          fadeOutDuration={1000}
+          opacity={0.8}
+          textStyle={{ color: "#fff" }}
+        />
       </View>
     );
   }
