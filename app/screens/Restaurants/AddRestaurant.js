@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { Icon, Image, Button } from "react-native-elements";
 import { Permissions, ImagePicker } from "expo";
 import Toast, { DURATION } from "react-native-easy-toast";
+import { uploadImage } from "../../utils/UploadImage";
 
 import t from "tcomb-form-native";
 const Form = t.form.Form;
@@ -10,6 +11,11 @@ import {
   AddRestaurantStruct,
   AddRestaurantOptions
 } from "../../forms/AddRestaurant";
+
+import { firebaseApp } from "../../utils/FireBase";
+import firebase from "firebase/app";
+import "firebase/firestore";
+const db = firebase.firestore(firebaseApp);
 
 export default class AddRestaurant extends Component {
   constructor() {
@@ -73,8 +79,40 @@ export default class AddRestaurant extends Component {
   };
 
   addRestaurant = () => {
-    console.log("Estamos enla funcion AddRestaurant");
-    console.log(this.state);
+    const { imageUriRestaurant } = this.state;
+    const { name, city, address, description } = this.state.formData;
+
+    if (imageUriRestaurant && name && city && address && description) {
+      db.collection("restaurants")
+        .add({ name, city, address, description, image: "" })
+        .then(resolve => {
+          const restaurantId = resolve.id;
+
+          uploadImage(imageUriRestaurant, restaurantId, "restaurants")
+            .then(resolve => {
+              const restaurantRef = db
+                .collection("restaurants")
+                .doc(restaurantId);
+
+              restaurantRef
+                .update({ image: resolve })
+                .then(() => {
+                  this.refs.toast.show("Restaurante creado correctamente");
+                })
+                .catch(() => {
+                  this.refs.toast.show("Error de servidor intentelo mas tarde");
+                });
+            })
+            .catch(() => {
+              this.refs.toast.show("Error de servidor intentelo mas tarde");
+            });
+        })
+        .catch(() => {
+          this.refs.toast.show("Error de servidor intentelo mas tarde");
+        });
+    } else {
+      this.refs.toast.show("Tienes que rellenar todos los campos");
+    }
   };
 
   render() {
