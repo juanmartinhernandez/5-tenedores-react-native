@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import { StyleSheet, View } from "react-native";
-import { Icon, Image, Button } from "react-native-elements";
+import { StyleSheet, View, ActivityIndicator } from "react-native";
+import { Icon, Image, Button, Text, Overlay } from "react-native-elements";
 import { Permissions, ImagePicker } from "expo";
 import Toast, { DURATION } from "react-native-easy-toast";
 import { uploadImage } from "../../utils/UploadImage";
@@ -22,6 +22,7 @@ export default class AddRestaurant extends Component {
     super();
 
     this.state = {
+      loading: false,
       imageUriRestaurant: "",
       formData: {
         name: "",
@@ -83,6 +84,8 @@ export default class AddRestaurant extends Component {
     const { name, city, address, description } = this.state.formData;
 
     if (imageUriRestaurant && name && city && address && description) {
+      this.setState({ loading: true });
+
       db.collection("restaurants")
         .add({ name, city, address, description, image: "" })
         .then(resolve => {
@@ -97,18 +100,28 @@ export default class AddRestaurant extends Component {
               restaurantRef
                 .update({ image: resolve })
                 .then(() => {
-                  this.refs.toast.show("Restaurante creado correctamente");
+                  this.setState({ loading: false });
+                  this.refs.toast.show(
+                    "Restaurante creado correctamente",
+                    100,
+                    () => {
+                      this.props.navigation.goBack();
+                    }
+                  );
                 })
                 .catch(() => {
                   this.refs.toast.show("Error de servidor intentelo mas tarde");
+                  this.setState({ loading: false });
                 });
             })
             .catch(() => {
               this.refs.toast.show("Error de servidor intentelo mas tarde");
+              this.setState({ loading: false });
             });
         })
         .catch(() => {
           this.refs.toast.show("Error de servidor intentelo mas tarde");
+          this.setState({ loading: false });
         });
     } else {
       this.refs.toast.show("Tienes que rellenar todos los campos");
@@ -116,7 +129,7 @@ export default class AddRestaurant extends Component {
   };
 
   render() {
-    const { imageUriRestaurant } = this.state;
+    const { imageUriRestaurant, loading } = this.state;
 
     return (
       <View style={styles.viewBody}>
@@ -148,6 +161,18 @@ export default class AddRestaurant extends Component {
             buttonStyle={styles.btnAddRestaurant}
           />
         </View>
+
+        <Overlay
+          overlayStyle={styles.overlayLoading}
+          isVisible={loading}
+          width="auto"
+          height="auto"
+        >
+          <View>
+            <Text style={styles.overlayLoadingText}>Creando Restaurante</Text>
+            <ActivityIndicator size="large" color="#00a680" />
+          </View>
+        </Overlay>
 
         <Toast
           ref="toast"
@@ -190,5 +215,13 @@ const styles = StyleSheet.create({
   btnAddRestaurant: {
     backgroundColor: "#00a680",
     margin: 20
+  },
+  overlayLoading: {
+    padding: 20
+  },
+  overlayLoadingText: {
+    color: "#00a680",
+    marginBottom: 20,
+    fontSize: 20
   }
 });
