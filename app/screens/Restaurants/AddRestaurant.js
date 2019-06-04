@@ -87,7 +87,14 @@ export default class AddRestaurant extends Component {
       this.setState({ loading: true });
 
       db.collection("restaurants")
-        .add({ name, city, address, description, image: "" })
+        .add({
+          name,
+          city,
+          address,
+          description,
+          image: "",
+          createAt: new Date()
+        })
         .then(resolve => {
           const restaurantId = resolve.id;
 

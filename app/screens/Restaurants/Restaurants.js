@@ -55,7 +55,11 @@ export default class Restaurants extends Component {
     return (
       <View style={styles.viewBody}>
         <Text>Restaurants Screen...</Text>
-        {this.loadActionButton()}
+        {/* {this.loadActionButton()} */}
+        <ActionButton
+          buttonColor="#00a680"
+          onPress={() => this.goToScreen("AddRestaurant")}
+        />
       </View>
     );
   }
