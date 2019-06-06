@@ -201,8 +201,7 @@ export default class Restaurants extends Component {
   };
 
   clickRestaurant = restaurant => {
-    console.log("Has realizado click en el siguiente estaurante");
-    console.log(restaurant);
+    this.props.navigation.navigate("Restaurant", { restaurant });
   };
 
   render() {
