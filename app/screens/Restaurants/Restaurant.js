@@ -1,5 +1,6 @@
 import React, { Component } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
+import { Image, Icon, ListItem } from "react-native-elements";
 
 export default class Restaurant extends Component {
   constructor(props) {
@@ -10,21 +11,82 @@ export default class Restaurant extends Component {
     const {
       name,
       city,
-      address
+      address,
+      description,
+      image
     } = this.props.navigation.state.params.restaurant.item.restaurant;
+
+    const listExtraInfo = [
+      {
+        text: `${city}, ${address}`,
+        iconName: "map-marker",
+        iconType: "material-community",
+        action: null
+      }
+    ];
+
     return (
-      <View style={StyleSheet.viewBody}>
-        <Text>
-          Estamos en la screen del restaurante {name} de la ciudad de {city} con
-          la direccion {address}{" "}
-        </Text>
+      <View style={styles.viewBody}>
+        <View style={styles.viewImage}>
+          <Image
+            source={{ uri: image }}
+            PlaceholderContent={<ActivityIndicator />}
+            style={styles.imageRestaurant}
+          />
+        </View>
+
+        <View style={styles.viewRestaurantBasicInfo}>
+          <Text style={styles.nameRestaurant}>{name}</Text>
+          <Text style={styles.descriptionRestaurant}>{description}</Text>
+        </View>
+
+        <View style={styles.viewRestaurantExtraInfo}>
+          <Text style={styles.restaurantExtraInfoTitle}>
+            Informacion sobre el restaurante
+          </Text>
+          {listExtraInfo.map((item, index) => (
+            <ListItem
+              key={index}
+              title={item.text}
+              leftIcon={<Icon name={item.iconName} type={item.iconType} />}
+            />
+          ))}
+        </View>
       </View>
     );
   }
 }
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   viewBody: {
     flex: 1
+  },
+  viewImage: {
+    width: "100%"
+  },
+  imageRestaurant: {
+    width: "100%",
+    height: 200,
+    resizeMode: "cover"
+  },
+  viewRestaurantBasicInfo: {
+    margin: 15
+  },
+  nameRestaurant: {
+    fontSize: 20,
+    fontWeight: "bold"
+  },
+  descriptionRestaurant: {
+    marginTop: 5,
+    color: "grey"
+  },
+  viewRestaurantExtraInfo: {
+    margin: 15,
+    marginTop: 25
+  },
+  restaurantExtraInfoTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10
   }
 });
