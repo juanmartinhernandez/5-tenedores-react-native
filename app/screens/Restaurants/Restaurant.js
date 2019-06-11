@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { Image, Icon, ListItem, Button, Text } from "react-native-elements";
+import Toast, { DURATION } from "react-native-easy-toast";
 
 import { firebaseApp } from "../../utils/FireBase";
 import firebase from "firebase/app";
@@ -20,6 +21,49 @@ export default class Restaurant extends Component {
     return false;
   };
 
+  checkAddReviewUser = () => {
+    const user = firebase.auth().currentUser;
+    const idUser = user.uid;
+    const idRestaurant = this.props.navigation.state.params.restaurant.item
+      .restaurant.id;
+
+    const reviewsRef = db.collection("reviews");
+    const queryRef = reviewsRef
+      .where("idUser", "==", idUser)
+      .where("idRestaurant", "==", idRestaurant);
+
+    return queryRef.get().then(resolve => {
+      const countReview = resolve.size;
+
+      if (countReview > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+  };
+
+  goToScreenAddReview = () => {
+    this.checkAddReviewUser().then(resolve => {
+      if (resolve) {
+        this.refs.toast.show(
+          "Ya has enviado una review, no puedes enviar mas",
+          2000
+        );
+      } else {
+        const {
+          id,
+          name
+        } = this.props.navigation.state.params.restaurant.item.restaurant;
+
+        this.props.navigation.navigate("AddReviewRestaurant", {
+          id,
+          name
+        });
+      }
+    });
+  };
+
   loadButtonAddReview = () => {
     if (!this.checkUserLogin()) {
       return (
@@ -34,20 +78,10 @@ export default class Restaurant extends Component {
         </Text>
       );
     } else {
-      const {
-        id,
-        name
-      } = this.props.navigation.state.params.restaurant.item.restaurant;
-
       return (
         <Button
           title="Añadir Comentario"
-          onPress={() =>
-            this.props.navigation.navigate("AddReviewRestaurant", {
-              id,
-              name
-            })
-          }
+          onPress={() => this.goToScreenAddReview()}
           buttonStyle={styles.btnAddReview}
         />
       );
@@ -104,6 +138,16 @@ export default class Restaurant extends Component {
         <View style={styles.viewBtnAddReview}>
           {this.loadButtonAddReview()}
         </View>
+
+        <Toast
+          ref="toast"
+          position="bottom"
+          positionValue={320}
+          fadeInDuration={1000}
+          fadeOutduration={1000}
+          opacity={0.8}
+          textStyle={{ color: "#fff" }}
+        />
       </View>
     );
   }
