@@ -1,6 +1,20 @@
 import React, { Component } from "react";
-import { StyleSheet, View, ActivityIndicator } from "react-native";
-import { Image, Icon, ListItem, Button, Text } from "react-native-elements";
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  ActivityIndicator,
+  FlatList
+} from "react-native";
+import {
+  Image,
+  Icon,
+  ListItem,
+  Button,
+  Text,
+  Rating,
+  Avatar
+} from "react-native-elements";
 import Toast, { DURATION } from "react-native-easy-toast";
 
 import { firebaseApp } from "../../utils/FireBase";
@@ -11,6 +25,17 @@ const db = firebase.firestore(firebaseApp);
 export default class Restaurant extends Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      reviews: null,
+      startReview: null,
+      limitReviews: 5,
+      isLoading: true
+    };
+  }
+
+  componentDidMount() {
+    this.loadReviews();
   }
 
   checkUserLogin = () => {
@@ -88,7 +113,87 @@ export default class Restaurant extends Component {
     }
   };
 
+  loadReviews = async () => {
+    const { limitReviews } = this.state;
+    const {
+      id
+    } = this.props.navigation.state.params.restaurant.item.restaurant;
+
+    let resultReviews = [];
+
+    const reviews = db
+      .collection("reviews")
+      .where("idRestaurant", "==", id)
+      .limit(limitReviews);
+
+    return await reviews.get().then(response => {
+      this.setState({
+        startReview: response.docs[response.docs.length - 1]
+      });
+
+      response.forEach(doc => {
+        let review = doc.data();
+        resultReviews.push(review);
+      });
+
+      this.setState({
+        reviews: resultReviews
+      });
+    });
+  };
+
+  renderFlatList = reviews => {
+    if (reviews) {
+      return (
+        <FlatList
+          data={reviews}
+          renderItem={this.renderRow}
+          keyExtractor={(item, index) => index.toString()}
+          onEndReachedThreshold={0}
+        />
+      );
+    } else {
+      return (
+        <View style={styles.startLoadReviews}>
+          <ActivityIndicator size="large" />
+          <Text>Cargando reviews</Text>
+        </View>
+      );
+    }
+  };
+
+  renderRow = reviewData => {
+    const { title, review, rating, idUser, createAt } = reviewData.item;
+    const createReview = new Date(createAt.seconds * 1000);
+
+    return (
+      <View style={styles.viewReview}>
+        <View style={styles.viewImage}>
+          <Avatar
+            source={{
+              uri: "https://api.adorable.io/avatars/192/abott@adorable.png"
+            }}
+            size="large"
+            rounded
+            containerStyle={styles.imageAvatarUser}
+          />
+        </View>
+        <View style={styles.viewInfo}>
+          <Text style={styles.reviewTitle}>{title}</Text>
+          <Text style={styles.reviewText}>{review}</Text>
+          <Rating imageSize={15} startingValue={rating} />
+          <Text style={styles.reviewDate}>
+            {createReview.getDate()}/{createReview.getMonth() + 1}/
+            {createReview.getFullYear()} - {createReview.getHours()}:
+            {createReview.getMinutes()}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   render() {
+    const { reviews } = this.state;
     const {
       id,
       name,
@@ -108,7 +213,7 @@ export default class Restaurant extends Component {
     ];
 
     return (
-      <View style={styles.viewBody}>
+      <ScrollView style={styles.viewBody}>
         <View style={styles.viewImage}>
           <Image
             source={{ uri: image }}
@@ -139,6 +244,9 @@ export default class Restaurant extends Component {
           {this.loadButtonAddReview()}
         </View>
 
+        <Text style={styles.commentTitle}>Comentarios</Text>
+        {this.renderFlatList(reviews)}
+
         <Toast
           ref="toast"
           position="bottom"
@@ -148,7 +256,7 @@ export default class Restaurant extends Component {
           opacity={0.8}
           textStyle={{ color: "#fff" }}
         />
-      </View>
+      </ScrollView>
     );
   }
 }
@@ -193,6 +301,48 @@ const styles = StyleSheet.create({
   },
   textLinkLogin: {
     color: "#00a680",
+    fontWeight: "bold"
+  },
+  startLoadReviews: {
+    marginTop: 20,
+    alignItems: "center"
+  },
+  viewReview: {
+    flexDirection: "row",
+    margin: 10,
+    paddingBottom: 20,
+    borderBottomColor: "#e3e3e3",
+    borderBottomWidth: 1
+  },
+  viewImage: {
+    marginRight: 15
+  },
+  imageAvatarUser: {
+    width: 50,
+    height: 50
+  },
+  viewInfo: {
+    flex: 1,
+    alignItems: "flex-start"
+  },
+  reviewTitle: {
+    fontWeight: "bold"
+  },
+  reviewText: {
+    paddingTop: 2,
+    color: "grey",
+    marginBottom: 5
+  },
+  reviewDate: {
+    marginTop: 5,
+    color: "grey",
+    fontSize: 12
+  },
+  commentTitle: {
+    fontSize: 20,
+    textAlign: "center",
+    marginTop: 20,
+    marginBottom: 10,
     fontWeight: "bold"
   }
 });
