@@ -27,6 +27,8 @@ export default class AddReviewRestaurant extends Component {
   sendReview = () => {
     const ratingValue = this.refs.rating.state.position;
 
+    const user = firebase.auth().currentUser;
+
     this.setState({ loading: true });
 
     if (ratingValue == 0) {
@@ -43,6 +45,7 @@ export default class AddReviewRestaurant extends Component {
 
         const data = {
           idUser: user.uid,
+          avatarUser: user.photoURL,
           idRestaurant: this.props.navigation.state.params.id,
           title: validate.title,
           review: validate.review,

@@ -163,15 +163,26 @@ export default class Restaurant extends Component {
   };
 
   renderRow = reviewData => {
-    const { title, review, rating, idUser, createAt } = reviewData.item;
+    const {
+      title,
+      review,
+      rating,
+      idUser,
+      createAt,
+      avatarUser
+    } = reviewData.item;
     const createReview = new Date(createAt.seconds * 1000);
+
+    const avatar = avatarUser
+      ? avatarUser
+      : "https://api.adorable.io/avatars/172/abott@adorable.png";
 
     return (
       <View style={styles.viewReview}>
         <View style={styles.viewImage}>
           <Avatar
             source={{
-              uri: "https://api.adorable.io/avatars/192/abott@adorable.png"
+              uri: avatar
             }}
             size="large"
             rounded
