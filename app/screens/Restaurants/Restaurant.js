@@ -29,7 +29,8 @@ export default class Restaurant extends Component {
     this.state = {
       reviews: null,
       startReview: null,
-      isLoading: true
+      isLoading: true,
+      rating: 0
     };
   }
 
@@ -119,6 +120,7 @@ export default class Restaurant extends Component {
     } = this.props.navigation.state.params.restaurant.item.restaurant;
 
     let resultReviews = [];
+    let arrayRating = [];
 
     const reviews = db.collection("reviews").where("idRestaurant", "==", id);
 
@@ -130,10 +132,21 @@ export default class Restaurant extends Component {
       response.forEach(doc => {
         let review = doc.data();
         resultReviews.push(review);
+
+        arrayRating.push(doc.data().rating);
       });
 
+      let numSum = 0;
+      arrayRating.map(value => {
+        numSum = numSum + value;
+      });
+      const countRating = arrayRating.length;
+      const resultRating = numSum / countRating;
+      const resultRatingFinish = resultRating ? resultRating : 0;
+
       this.setState({
-        reviews: resultReviews
+        reviews: resultReviews,
+        rating: resultRatingFinish
       });
     });
   };
@@ -175,7 +188,7 @@ export default class Restaurant extends Component {
 
     return (
       <View style={styles.viewReview}>
-        <View style={styles.viewImage}>
+        <View style={styles.viewImageAvatar}>
           <Avatar
             source={{
               uri: avatar
@@ -188,7 +201,7 @@ export default class Restaurant extends Component {
         <View style={styles.viewInfo}>
           <Text style={styles.reviewTitle}>{title}</Text>
           <Text style={styles.reviewText}>{review}</Text>
-          <Rating imageSize={15} startingValue={rating} />
+          <Rating imageSize={15} startingValue={rating} readonly />
           <Text style={styles.reviewDate}>
             {createReview.getDate()}/{createReview.getMonth() + 1}/
             {createReview.getFullYear()} - {createReview.getHours()}:
@@ -200,7 +213,7 @@ export default class Restaurant extends Component {
   };
 
   render() {
-    const { reviews } = this.state;
+    const { reviews, rating } = this.state;
     const {
       id,
       name,
@@ -230,7 +243,15 @@ export default class Restaurant extends Component {
         </View>
 
         <View style={styles.viewRestaurantBasicInfo}>
-          <Text style={styles.nameRestaurant}>{name}</Text>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={styles.nameRestaurant}>{name}</Text>
+            <Rating
+              style={{ position: "absolute", right: 0 }}
+              imageSize={20}
+              readonly
+              startingValue={parseFloat(rating)}
+            />
+          </View>
           <Text style={styles.descriptionRestaurant}>{description}</Text>
         </View>
 
@@ -321,7 +342,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e3e3e3",
     borderBottomWidth: 1
   },
-  viewImage: {
+  viewImageAvatar: {
     marginRight: 15
   },
   imageAvatarUser: {
