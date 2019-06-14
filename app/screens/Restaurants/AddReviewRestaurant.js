@@ -58,6 +58,7 @@ export default class AddReviewRestaurant extends Component {
           .then(() => {
             this.setState({ loading: false });
             this.refs.toast.show("Review enviada correctamente", 50, () => {
+              this.props.navigation.state.params.loadReviews();
               this.props.navigation.goBack();
             });
           })

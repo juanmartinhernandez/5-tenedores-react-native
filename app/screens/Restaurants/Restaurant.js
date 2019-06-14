@@ -83,7 +83,8 @@ export default class Restaurant extends Component {
 
         this.props.navigation.navigate("AddReviewRestaurant", {
           id,
-          name
+          name,
+          loadReviews: this.loadReviews
         });
       }
     });
