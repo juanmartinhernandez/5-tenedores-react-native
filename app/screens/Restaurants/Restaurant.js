@@ -29,7 +29,6 @@ export default class Restaurant extends Component {
     this.state = {
       reviews: null,
       startReview: null,
-      limitReviews: 5,
       isLoading: true
     };
   }
@@ -121,10 +120,7 @@ export default class Restaurant extends Component {
 
     let resultReviews = [];
 
-    const reviews = db
-      .collection("reviews")
-      .where("idRestaurant", "==", id)
-      .limit(limitReviews);
+    const reviews = db.collection("reviews").where("idRestaurant", "==", id);
 
     return await reviews.get().then(response => {
       this.setState({
