@@ -61,7 +61,7 @@ export default class Restaurant extends Component {
       const countReview = resolve.size;
 
       if (countReview > 0) {
-        return true;
+        return false;
       } else {
         return false;
       }
