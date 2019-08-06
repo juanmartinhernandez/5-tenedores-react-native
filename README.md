@@ -1,3 +1,5 @@
-React Native Expor y Firebase
+React Native Expo: Creando un TripAdvisor de Restaurantes
 
-5 Tenedores
+Curso de Udemy.
+
+URL Curso: http://bit.ly/2YKw5y5
