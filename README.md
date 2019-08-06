@@ -1,15 +1,20 @@
 # React Native Expo: Creando un TripAdvisor de Restaurantes
 
 _Curso en Udemy donde se explica paso a paso la creacion de la APP movil 5 Tenedores._
-Url del Curso: http://bit.ly/2YKw5y5
+
+**Url del Curso:** http://bit.ly/2YKw5y5
+
 
 ## Comenzando 🚀
 
 _Gracias a este curso aprenderás desde los conceptos básicos de **React Native**, hasta lo más **avanzados** para crear una APP completa desde cero **como la de TripAdvisor**._
 
 _Una vez terminado el curso **serás capaz de crear cualquier tipo de aplicación móvil** conectada a una base de datos sin necesidad de ayuda._
+
 _Aprenderemos desde las bases de React Native al uso de **elementos nativos del móvil**, como puede ser la cámara o el sistema de ficheros de fotos._
+
 _Gracias al uso de Expo con React Native aprenderemos a configurar los elementos nativos del dispositivo de una manera muy fácil._
+
 
 ### Que veremos en el curso
 
