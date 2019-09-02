@@ -2,7 +2,7 @@
 
 _Curso en Udemy donde se explica paso a paso la creacion de la APP movil 5 Tenedores._
 
-**Url del Curso:** http://bit.ly/2YKw5y5
+**Url del Curso:** http://bit.ly/2ke1XgE
 
 
 ## Comenzando 🚀
