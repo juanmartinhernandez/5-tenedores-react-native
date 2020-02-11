@@ -2,7 +2,9 @@
 
 _Curso en Udemy donde se explica paso a paso la creacion de la APP movil 5 Tenedores._
 
-**Url del Curso:** https://courses.agustinnavarrogaldon.com/react-native-expo
+**Curso:** https://courses.agustinnavarrogaldon.com/react-native-expo
+
+**Demo:** https://expo.io/@xagustin93/5-tenedores
 
 
 ## Comenzando 🚀
