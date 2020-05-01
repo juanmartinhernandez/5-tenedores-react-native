@@ -1,29 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   StyleSheet,
-  View,
   Text,
+  View,
   FlatList,
   ActivityIndicator,
-  TouchableOpacity
+  TouchableOpacity,
 } from "react-native";
 import { Image } from "react-native-elements";
-import * as firebase from "firebase";
+import { size } from "lodash";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ListRestaurants(props) {
-  const { restaurants, isLoading, handleLoadMore, navigation } = props;
+  const { restaurants, handleLoadMore, isLoading } = props;
+  const navigation = useNavigation();
 
   return (
     <View>
-      {restaurants ? (
+      {size(restaurants) > 0 ? (
         <FlatList
           data={restaurants}
-          renderItem={restaurant => (
+          renderItem={(restaurant) => (
             <Restaurant restaurant={restaurant} navigation={navigation} />
           )}
           keyExtractor={(item, index) => index.toString()}
-          onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          onEndReached={handleLoadMore}
           ListFooterComponent={<FooterList isLoading={isLoading} />}
         />
       ) : (
@@ -38,35 +40,29 @@ export default function ListRestaurants(props) {
 
 function Restaurant(props) {
   const { restaurant, navigation } = props;
-  const { name, address, description, images } = restaurant.item.restaurant;
-  const [imageRestaurant, setImageRestaurant] = useState(null);
+  const { id, images, name, address, description } = restaurant.item;
+  const imageRestaurant = images ? images[0] : null;
 
-  useEffect(() => {
-    const image = images[0];
-    firebase
-      .storage()
-      .ref(`restaurant-images/${image}`)
-      .getDownloadURL()
-      .then(result => {
-        setImageRestaurant(result);
-      });
-  });
+  const goRestaurant = () => {
+    navigation.navigate("restaurant", {
+      id,
+      name,
+    });
+  };
 
   return (
-    <TouchableOpacity
-      onPress={() =>
-        navigation.navigate("Restaurant", {
-          restaurant: restaurant.item.restaurant
-        })
-      }
-    >
+    <TouchableOpacity onPress={goRestaurant}>
       <View style={styles.viewRestaurant}>
         <View style={styles.viewRestaurantImage}>
           <Image
             resizeMode="cover"
-            source={{ uri: imageRestaurant }}
-            style={styles.imageRestaurant}
             PlaceholderContent={<ActivityIndicator color="fff" />}
+            source={
+              imageRestaurant
+                ? { uri: imageRestaurant }
+                : require("../../../assets/img/no-image.png")
+            }
+            style={styles.imageRestaurant}
           />
         </View>
         <View>
@@ -86,13 +82,13 @@ function FooterList(props) {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingRestaurants}>
+      <View style={styles.loaderRestaurants}>
         <ActivityIndicator size="large" />
       </View>
     );
   } else {
     return (
-      <View style={styles.notFoundRestuants}>
+      <View style={styles.notFoundRestaurants}>
         <Text>No quedan restaurantes por cargar</Text>
       </View>
     );
@@ -100,40 +96,37 @@ function FooterList(props) {
 }
 
 const styles = StyleSheet.create({
-  loadingRestaurants: {
-    marginTop: 20,
-    alignItems: "center"
+  loaderRestaurants: {
+    marginTop: 10,
+    marginBottom: 10,
+    alignItems: "center",
   },
   viewRestaurant: {
     flexDirection: "row",
-    margin: 10
+    margin: 10,
   },
   viewRestaurantImage: {
-    marginRight: 15
+    marginRight: 15,
   },
   imageRestaurant: {
     width: 80,
-    height: 80
+    height: 80,
   },
   restaurantName: {
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   restaurantAddress: {
     paddingTop: 2,
-    color: "grey"
+    color: "grey",
   },
   restaurantDescription: {
     paddingTop: 2,
     color: "grey",
-    width: 300
+    width: 300,
   },
-  loaderRestaurants: {
-    marginTop: 10,
-    marginBottom: 10
-  },
-  notFoundRestuants: {
+  notFoundRestaurants: {
     marginTop: 10,
     marginBottom: 20,
-    alignItems: "center"
-  }
+    alignItems: "center",
+  },
 });

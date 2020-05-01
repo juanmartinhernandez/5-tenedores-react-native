@@ -1,46 +1,53 @@
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Input, Icon, Button } from "react-native-elements";
-import { validateEmail } from "../../utils/Validation";
-import * as firebase from "firebase";
-import { withNavigation } from "react-navigation";
 import Loading from "../Loading";
+import { validateEmail } from "../../utils/validations";
+import { size, isEmpty } from "lodash";
+import * as firebase from "firebase";
+import { useNavigation } from "@react-navigation/native";
 
-function RegisterForm(props) {
-  const { toastRef, navigation } = props;
-  const [hidePassword, setHidePassword] = useState(true);
-  const [hideRepeatPassword, setHideRepeatPassword] = useState(true);
-  const [isVisibleLoading, setIsVisibleLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
+export default function RegisterForm(props) {
+  const { toastRef } = props;
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+  const [formData, setFormData] = useState(defaultFormValue());
+  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
-  const register = async () => {
-    setIsVisibleLoading(true);
-    if (!email || !password || !repeatPassword) {
+  const onSubmit = () => {
+    if (
+      isEmpty(formData.email) ||
+      isEmpty(formData.password) ||
+      isEmpty(formData.repeatPassword)
+    ) {
       toastRef.current.show("Todos los campos son obligatorios");
+    } else if (!validateEmail(formData.email)) {
+      toastRef.current.show("El email no es correcto");
+    } else if (formData.password !== formData.repeatPassword) {
+      toastRef.current.show("Las contraseñas tienen que ser iguales");
+    } else if (size(formData.password) < 6) {
+      toastRef.current.show(
+        "La contraseña tiene que tener al menos 6 caracteres"
+      );
     } else {
-      if (!validateEmail(email)) {
-        toastRef.current.show("El email no es correcto");
-      } else {
-        if (password !== repeatPassword) {
-          toastRef.current.show("Las contraseñas no son iguales");
-        } else {
-          await firebase
-            .auth()
-            .createUserWithEmailAndPassword(email, password)
-            .then(() => {
-              navigation.navigate("MyAccount");
-            })
-            .catch(() => {
-              toastRef.current.show(
-                "Error al crear la cuenta, intntelo más tarde"
-              );
-            });
-        }
-      }
+      setLoading(true);
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(formData.email, formData.password)
+        .then(() => {
+          setLoading(false);
+          navigation.navigate("account");
+        })
+        .catch(() => {
+          setLoading(false);
+          toastRef.current.show("El email ya esta en uso, pruebe con otro");
+        });
     }
-    setIsVisibleLoading(false);
+  };
+
+  const onChange = (e, type) => {
+    setFormData({ ...formData, [type]: e.nativeEvent.text });
   };
 
   return (
@@ -48,7 +55,7 @@ function RegisterForm(props) {
       <Input
         placeholder="Correo electronico"
         containerStyle={styles.inputForm}
-        onChange={e => setEmail(e.nativeEvent.text)}
+        onChange={(e) => onChange(e, "email")}
         rightIcon={
           <Icon
             type="material-community"
@@ -59,31 +66,31 @@ function RegisterForm(props) {
       />
       <Input
         placeholder="Contraseña"
-        password={true}
-        secureTextEntry={hidePassword}
         containerStyle={styles.inputForm}
-        onChange={e => setPassword(e.nativeEvent.text)}
+        password={true}
+        secureTextEntry={showPassword ? false : true}
+        onChange={(e) => onChange(e, "password")}
         rightIcon={
           <Icon
             type="material-community"
-            name={hidePassword ? "eye-outline" : "eye-off-outline"}
+            name={showPassword ? "eye-off-outline" : "eye-outline"}
             iconStyle={styles.iconRight}
-            onPress={() => setHidePassword(!hidePassword)}
+            onPress={() => setShowPassword(!showPassword)}
           />
         }
       />
       <Input
         placeholder="Repetir contraseña"
-        password={true}
-        secureTextEntry={hideRepeatPassword}
         containerStyle={styles.inputForm}
-        onChange={e => setRepeatPassword(e.nativeEvent.text)}
+        password={true}
+        secureTextEntry={showRepeatPassword ? false : true}
+        onChange={(e) => onChange(e, "repeatPassword")}
         rightIcon={
           <Icon
             type="material-community"
-            name={hideRepeatPassword ? "eye-outline" : "eye-off-outline"}
+            name={showRepeatPassword ? "eye-off-outline" : "eye-outline"}
             iconStyle={styles.iconRight}
-            onPress={() => setHideRepeatPassword(!hideRepeatPassword)}
+            onPress={() => setShowRepeatPassword(!showRepeatPassword)}
           />
         }
       />
@@ -91,33 +98,40 @@ function RegisterForm(props) {
         title="Unirse"
         containerStyle={styles.btnContainerRegister}
         buttonStyle={styles.btnRegister}
-        onPress={register}
+        onPress={onSubmit}
       />
-      <Loading text="Creando cuenta" isVisible={isVisibleLoading} />
+      <Loading isVisible={loading} text="Creando cuenta" />
     </View>
   );
 }
-export default withNavigation(RegisterForm);
+
+function defaultFormValue() {
+  return {
+    email: "",
+    password: "",
+    repeatPassword: "",
+  };
+}
 
 const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 30
+    marginTop: 30,
   },
   inputForm: {
     width: "100%",
-    marginTop: 20
-  },
-  iconRight: {
-    color: "#c1c1c1"
+    marginTop: 20,
   },
   btnContainerRegister: {
     marginTop: 20,
-    width: "95%"
+    width: "95%",
   },
   btnRegister: {
-    backgroundColor: "#00a680"
-  }
+    backgroundColor: "#00a680",
+  },
+  iconRight: {
+    color: "#c1c1c1",
+  },
 });

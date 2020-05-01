@@ -2,39 +2,41 @@ import React, { useState } from "react";
 import { SocialIcon } from "react-native-elements";
 import * as firebase from "firebase";
 import * as Facebook from "expo-facebook";
-import { FacebookApi } from "../../utils/Social";
+import { useNavigation } from "@react-navigation/native";
+import { FacebookApi } from "../../utils/social";
 import Loading from "../Loading";
 
 export default function LoginFacebook(props) {
-  const { toastRef, navigation } = props;
-  const [isLoading, setIsLoading] = useState(false);
+  const { toastRef } = props;
+  const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
 
   const login = async () => {
-    const { type, token } = await Facebook.logInWithReadPermissionsAsync(
-      FacebookApi.application_id,
-      { permissions: FacebookApi.permissions }
-    );
+    await Facebook.initializeAsync(FacebookApi.application_id);
+
+    const { type, token } = await Facebook.logInWithReadPermissionsAsync({
+      permissions: FacebookApi.permissions,
+    });
 
     if (type === "success") {
-      setIsLoading(true);
+      setLoading(true);
       const credentials = firebase.auth.FacebookAuthProvider.credential(token);
-      await firebase
+      firebase
         .auth()
         .signInWithCredential(credentials)
         .then(() => {
-          navigation.navigate("MyAccount");
+          setLoading(false);
+          navigation.navigate("account");
         })
         .catch(() => {
-          toastRef.current.show(
-            "Error acdediendo con Facebook, intentelo más tarde"
-          );
+          setLoading(false);
+          toastRef.current.show("Credenciales incorrectas.");
         });
     } else if (type === "cancel") {
       toastRef.current.show("Inicio de sesion cancelado");
     } else {
       toastRef.current.show("Error desconocido, intentelo más tarde");
     }
-    setIsLoading(false);
   };
 
   return (
@@ -45,7 +47,7 @@ export default function LoginFacebook(props) {
         type="facebook"
         onPress={login}
       />
-      <Loading isVisible={isLoading} text="Iniciando sesión" />
+      <Loading isVisible={loading} text="Iniciando sesión" />
     </>
   );
 }

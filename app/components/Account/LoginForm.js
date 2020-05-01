@@ -1,38 +1,42 @@
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Input, Icon, Button } from "react-native-elements";
-import { validateEmail } from "../../utils/Validation";
-import { withNavigation } from "react-navigation";
+import { isEmpty } from "lodash";
+import { useNavigation } from "@react-navigation/native";
 import * as firebase from "firebase";
+import { validateEmail } from "../../utils/validations";
 import Loading from "../Loading";
 
-function LoginForm(props) {
-  const { toastRef, navigation } = props;
-  const [hidePassword, setHidePassword] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isVisibleLoading, setIsVisibleLoading] = useState(false);
+export default function LoginForm(props) {
+  const { toastRef } = props;
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState(defaultFormValue());
+  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
-  const login = async () => {
-    setIsVisibleLoading(true);
-    if (!email || !password) {
+  const onChange = (e, type) => {
+    setFormData({ ...formData, [type]: e.nativeEvent.text });
+  };
+
+  const onSubmit = () => {
+    if (isEmpty(formData.email) || isEmpty(formData.password)) {
       toastRef.current.show("Todos los campos son obligatorios");
+    } else if (!validateEmail(formData.email)) {
+      toastRef.current.show("El email no es correcto");
     } else {
-      if (!validateEmail(email)) {
-        toastRef.current.show("El email no es correcto");
-      } else {
-        await firebase
-          .auth()
-          .signInWithEmailAndPassword(email, password)
-          .then(() => {
-            navigation.navigate("MyAccount");
-          })
-          .catch(() => {
-            toastRef.current.show("Email o contraseña incorrecta");
-          });
-      }
+      setLoading(true);
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(formData.email, formData.password)
+        .then(() => {
+          setLoading(false);
+          navigation.navigate("account");
+        })
+        .catch(() => {
+          setLoading(false);
+          toastRef.current.show("Email o contraseña incorrecta");
+        });
     }
-    setIsVisibleLoading(false);
   };
 
   return (
@@ -40,7 +44,7 @@ function LoginForm(props) {
       <Input
         placeholder="Correo electronico"
         containerStyle={styles.inputForm}
-        onChange={e => setEmail(e.nativeEvent.text)}
+        onChange={(e) => onChange(e, "email")}
         rightIcon={
           <Icon
             type="material-community"
@@ -53,14 +57,14 @@ function LoginForm(props) {
         placeholder="Contraseña"
         containerStyle={styles.inputForm}
         password={true}
-        secureTextEntry={hidePassword}
-        onChange={e => setPassword(e.nativeEvent.text)}
+        secureTextEntry={showPassword ? false : true}
+        onChange={(e) => onChange(e, "password")}
         rightIcon={
           <Icon
             type="material-community"
-            name={hidePassword ? "eye-outline" : "eye-off-outline"}
+            name={showPassword ? "eye-off-outline" : "eye-outline"}
             iconStyle={styles.iconRight}
-            onPress={() => setHidePassword(!hidePassword)}
+            onPress={() => setShowPassword(!showPassword)}
           />
         }
       />
@@ -68,33 +72,39 @@ function LoginForm(props) {
         title="Iniciar sesión"
         containerStyle={styles.btnContainerLogin}
         buttonStyle={styles.btnLogin}
-        onPress={login}
+        onPress={onSubmit}
       />
-      <Loading isVisible={isVisibleLoading} text="Iniciando sesión" />
+      <Loading isVisible={loading} text="Iniciando sesión" />
     </View>
   );
 }
-export default withNavigation(LoginForm);
+
+function defaultFormValue() {
+  return {
+    email: "",
+    password: "",
+  };
+}
 
 const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 30
+    marginTop: 30,
   },
   inputForm: {
     width: "100%",
-    marginTop: 20
-  },
-  iconRight: {
-    color: "#c1c1c1"
+    marginTop: 20,
   },
   btnContainerLogin: {
     marginTop: 20,
-    width: "95%"
+    width: "95%",
   },
   btnLogin: {
-    backgroundColor: "#00a680"
-  }
+    backgroundColor: "#00a680",
+  },
+  iconRight: {
+    color: "#c1c1c1",
+  },
 });

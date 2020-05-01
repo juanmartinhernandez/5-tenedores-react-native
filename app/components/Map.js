@@ -10,7 +10,6 @@ export default function Map(props) {
       latitude: location.latitude,
       longitude: location.longitude,
       zoom: 19,
-      query: name
     });
   };
 
@@ -23,7 +22,7 @@ export default function Map(props) {
       <MapView.Marker
         coordinate={{
           latitude: location.latitude,
-          longitude: location.longitude
+          longitude: location.longitude,
         }}
       />
     </MapView>

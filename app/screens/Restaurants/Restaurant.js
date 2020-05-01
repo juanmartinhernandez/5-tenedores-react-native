@@ -1,85 +1,82 @@
-import React, { useState, useEffect, useRef } from "react";
-import { StyleSheet, View, ScrollView, Text, Dimensions } from "react-native";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { StyleSheet, Text, View, ScrollView, Dimensions } from "react-native";
 import { Rating, ListItem, Icon } from "react-native-elements";
+import { map } from "lodash";
+import { useFocusEffect } from "@react-navigation/native";
+import Toast from "react-native-easy-toast";
+import Loading from "../../components/Loading";
 import Carousel from "../../components/Carousel";
 import Map from "../../components/Map";
 import ListReviews from "../../components/Restaurants/ListReviews";
-import Toast from "react-native-easy-toast";
 
-import { firebaseApp } from "../../utils/FireBase";
+import { firebaseApp } from "../../utils/firebase";
 import firebase from "firebase/app";
 import "firebase/firestore";
-const db = firebase.firestore(firebaseApp);
 
+const db = firebase.firestore(firebaseApp);
 const screenWidth = Dimensions.get("window").width;
 
 export default function Restaurant(props) {
-  const { navigation } = props;
-  const { restaurant } = navigation.state.params;
-  const [imagesRestaurant, setImagesRestaurant] = useState([]);
-  const [rating, setRating] = useState(restaurant.rating);
+  const { navigation, route } = props;
+  const { id, name } = route.params;
+  const [restaurant, setRestaurant] = useState(null);
+  const [rating, setRating] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [userLogged, setUserLogged] = useState(false);
   const toastRef = useRef();
 
-  firebase.auth().onAuthStateChanged(user => {
+  navigation.setOptions({ title: name });
+
+  firebase.auth().onAuthStateChanged((user) => {
     user ? setUserLogged(true) : setUserLogged(false);
   });
 
-  useEffect(() => {
-    const arrayUrls = [];
-    (async () => {
-      await Promise.all(
-        restaurant.images.map(async idImage => {
-          await firebase
-            .storage()
-            .ref(`restaurant-images/${idImage}`)
-            .getDownloadURL()
-            .then(imageUrl => {
-              arrayUrls.push(imageUrl);
-            });
-        })
-      );
-      setImagesRestaurant(arrayUrls);
-    })();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      db.collection("restaurants")
+        .doc(id)
+        .get()
+        .then((response) => {
+          const data = response.data();
+          data.id = response.id;
+          setRestaurant(data);
+          setRating(data.rating);
+        });
+    }, [])
+  );
 
   useEffect(() => {
-    if (userLogged) {
+    if (userLogged && restaurant) {
       db.collection("favorites")
         .where("idRestaurant", "==", restaurant.id)
         .where("idUser", "==", firebase.auth().currentUser.uid)
         .get()
-        .then(response => {
+        .then((response) => {
           if (response.docs.length === 1) {
             setIsFavorite(true);
           }
         });
     }
-  }, []);
+  }, [userLogged, restaurant]);
 
   const addFavorite = () => {
     if (!userLogged) {
       toastRef.current.show(
-        "Para usar el sistema de favoritos tienes que estar logeado",
-        2000
+        "Para usar el sistema de favoritos tienes que estar logeado"
       );
     } else {
       const payload = {
         idUser: firebase.auth().currentUser.uid,
-        idRestaurant: restaurant.id
+        idRestaurant: restaurant.id,
       };
-
       db.collection("favorites")
         .add(payload)
         .then(() => {
           setIsFavorite(true);
-          toastRef.current.show("Restaurante añadido a la lista de favoritos");
+          toastRef.current.show("Restaurante añadido a favoritos");
         })
         .catch(() => {
-          toastRef.current.show(
-            "Error al añadir el restaurante a la lista de favoritos, intentelo más tarde"
-          );
+          toastRef.current.show("Error al añadir el restaurnate a favoritos");
         });
     }
   };
@@ -89,43 +86,43 @@ export default function Restaurant(props) {
       .where("idRestaurant", "==", restaurant.id)
       .where("idUser", "==", firebase.auth().currentUser.uid)
       .get()
-      .then(response => {
-        response.forEach(doc => {
+      .then((response) => {
+        response.forEach((doc) => {
           const idFavorite = doc.id;
           db.collection("favorites")
             .doc(idFavorite)
             .delete()
             .then(() => {
               setIsFavorite(false);
-              toastRef.current.show(
-                "Restaurante eliminado de la lista de favoritos"
-              );
+              toastRef.current.show("Restaurante eliminado de favoritos");
             })
             .catch(() => {
               toastRef.current.show(
-                "No se ha podido eliminar el restante de la lista de favoritos, intentelo mas tarde"
+                "Error al eliminar el restaurante de favoritos"
               );
             });
         });
       });
   };
 
+  if (!restaurant) return <Loading isVisible={true} text="Cargando..." />;
+
   return (
-    <ScrollView style={styles.viewBody}>
+    <ScrollView vertical style={styles.viewBody}>
       <View style={styles.viewFavorite}>
         <Icon
           type="material-community"
           name={isFavorite ? "heart" : "heart-outline"}
           onPress={isFavorite ? removeFavorite : addFavorite}
-          color={isFavorite ? "#00a680" : "#000"}
+          color={isFavorite ? "#f00" : "#000"}
           size={35}
           underlayColor="transparent"
         />
       </View>
       <Carousel
-        arrayImages={imagesRestaurant}
-        width={screenWidth}
+        arrayImages={restaurant.images}
         height={250}
+        width={screenWidth}
       />
       <TitleRestaurant
         name={restaurant.name}
@@ -137,12 +134,8 @@ export default function Restaurant(props) {
         name={restaurant.name}
         address={restaurant.address}
       />
-      <ListReviews
-        navigation={navigation}
-        idRestaurant={restaurant.id}
-        setRating={setRating}
-      />
-      <Toast ref={toastRef} position="center" opacity={0.5} />
+      <ListReviews navigation={navigation} idRestaurant={restaurant.id} />
+      <Toast ref={toastRef} position="center" opacity={0.9} />
     </ScrollView>
   );
 }
@@ -174,20 +167,20 @@ function RestaurantInfo(props) {
       text: address,
       iconName: "map-marker",
       iconType: "material-community",
-      action: null
+      action: null,
     },
     {
       text: "111 222 333",
       iconName: "phone",
       iconType: "material-community",
-      action: null
+      action: null,
     },
     {
       text: "xAgustin93@gmail.com",
       iconName: "at",
       iconType: "material-community",
-      action: null
-    }
+      action: null,
+    },
   ];
 
   return (
@@ -196,14 +189,14 @@ function RestaurantInfo(props) {
         Información sobre el restaurante
       </Text>
       <Map location={location} name={name} height={100} />
-      {listInfo.map((item, index) => (
+      {map(listInfo, (item, index) => (
         <ListItem
           key={index}
           title={item.text}
           leftIcon={{
             name: item.iconName,
             type: item.iconType,
-            color: "#00a680"
+            color: "#00a680",
           }}
           containerStyle={styles.containerListItem}
         />
@@ -214,7 +207,36 @@ function RestaurantInfo(props) {
 
 const styles = StyleSheet.create({
   viewBody: {
-    flex: 1
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  viewRestaurantTitle: {
+    padding: 15,
+  },
+  nameRestaurant: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  descriptionRestaurant: {
+    marginTop: 5,
+    color: "grey",
+  },
+  rating: {
+    position: "absolute",
+    right: 0,
+  },
+  viewRestaurantInfo: {
+    margin: 15,
+    marginTop: 25,
+  },
+  restaurantInfoTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  containerListItem: {
+    borderBottomColor: "#d8d8d8",
+    borderBottomWidth: 1,
   },
   viewFavorite: {
     position: "absolute",
@@ -223,37 +245,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
     backgroundColor: "#fff",
     borderBottomLeftRadius: 100,
-    paddingTop: 5,
-    paddingBottom: 5,
+    padding: 5,
     paddingLeft: 15,
-    paddingRight: 5
   },
-  viewRestaurantTitle: {
-    margin: 15
-  },
-  nameRestaurant: {
-    fontSize: 20,
-    fontWeight: "bold"
-  },
-  rating: {
-    position: "absolute",
-    right: 0
-  },
-  descriptionRestaurant: {
-    marginTop: 5,
-    color: "grey"
-  },
-  viewRestaurantInfo: {
-    margin: 15,
-    marginTop: 25
-  },
-  restaurantInfoTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10
-  },
-  containerListItem: {
-    borderBottomColor: "#d8d8d8",
-    borderBottomWidth: 1
-  }
 });

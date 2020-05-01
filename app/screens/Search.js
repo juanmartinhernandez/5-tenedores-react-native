@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, FlatList, Image, Text } from "react-native";
+import { StyleSheet, View, Text, FlatList, Image } from "react-native";
 import { SearchBar, ListItem, Icon } from "react-native-elements";
-import { useDebouncedCallback } from "use-debounce";
 import { FireSQL } from "firesql";
 import firebase from "firebase/app";
 
@@ -9,28 +8,24 @@ const fireSQL = new FireSQL(firebase.firestore(), { includeId: "id" });
 
 export default function Search(props) {
   const { navigation } = props;
-  const [restaurants, setRestaurants] = useState([]);
   const [search, setSearch] = useState("");
+  const [restaurants, setRestaurants] = useState([]);
 
   useEffect(() => {
-    onSearch();
-  }, [search]);
-
-  const [onSearch] = useDebouncedCallback(() => {
     if (search) {
       fireSQL
         .query(`SELECT * FROM restaurants WHERE name LIKE '${search}%'`)
-        .then(response => {
+        .then((response) => {
           setRestaurants(response);
         });
     }
-  }, 300);
+  }, [search]);
 
   return (
     <View>
       <SearchBar
         placeholder="Busca tu restaurante..."
-        onChangeText={e => setSearch(e)}
+        onChangeText={(e) => setSearch(e)}
         value={search}
         containerStyle={styles.searchBar}
       />
@@ -39,41 +34,13 @@ export default function Search(props) {
       ) : (
         <FlatList
           data={restaurants}
-          renderItem={restaurant => (
+          renderItem={(restaurant) => (
             <Restaurant restaurant={restaurant} navigation={navigation} />
           )}
           keyExtractor={(item, index) => index.toString()}
         />
       )}
     </View>
-  );
-}
-
-function Restaurant(props) {
-  const { restaurant, navigation } = props;
-  const { name, images } = restaurant.item;
-  const [imageRestaurant, setImageRestaurant] = useState(null);
-
-  useEffect(() => {
-    const image = images[0];
-    firebase
-      .storage()
-      .ref(`restaurant-images/${image}`)
-      .getDownloadURL()
-      .then(response => {
-        setImageRestaurant(response);
-      });
-  }, []);
-
-  return (
-    <ListItem
-      title={name}
-      leftAvatar={{ source: { uri: imageRestaurant } }}
-      rightIcon={<Icon type="material-community" name="chevron-right" />}
-      onPress={() =>
-        navigation.navigate("Restaurant", { restaurant: restaurant.item })
-      }
-    />
   );
 }
 
@@ -89,8 +56,31 @@ function NoFoundRestaurants() {
   );
 }
 
+function Restaurant(props) {
+  const { restaurant, navigation } = props;
+  const { id, name, images } = restaurant.item;
+
+  return (
+    <ListItem
+      title={name}
+      leftAvatar={{
+        source: images[0]
+          ? { uri: images[0] }
+          : require("../../assets/img/no-image.png"),
+      }}
+      rightIcon={<Icon type="material-community" name="chevron-right" />}
+      onPress={() =>
+        navigation.navigate("restaurants", {
+          screen: "restaurant",
+          params: { id, name },
+        })
+      }
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   searchBar: {
-    marginBottom: 20
-  }
+    marginBottom: 20,
+  },
 });

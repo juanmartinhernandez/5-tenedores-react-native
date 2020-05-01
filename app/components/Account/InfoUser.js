@@ -7,65 +7,66 @@ import * as ImagePicker from "expo-image-picker";
 
 export default function InfoUser(props) {
   const {
-    userInfo: { uid, displayName, email, photoURL },
-    setReloadData,
+    userInfo: { uid, photoURL, displayName, email },
     toastRef,
-    setIsLoading,
-    setTextLoading
+    setLoading,
+    setLoadingText,
   } = props;
 
   const changeAvatar = async () => {
-    const resultPermision = await Permissions.askAsync(Permissions.CAMERA_ROLL);
-    const resultPermisionCamera = resultPermision.permissions.cameraRoll.status;
+    const resultPermission = await Permissions.askAsync(
+      Permissions.CAMERA_ROLL
+    );
+    const resultPermissionCamera =
+      resultPermission.permissions.cameraRoll.status;
 
-    if (resultPermisionCamera === "denied") {
+    if (resultPermissionCamera === "denied") {
       toastRef.current.show("Es necesario aceptar los permisos de la galeria");
     } else {
       const result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
-        aspect: [4, 3]
+        aspect: [4, 3],
       });
 
       if (result.cancelled) {
-        toastRef.current.show(
-          "Has cerrado la galeria sin selecion ninguna imagen"
-        );
+        toastRef.current.show("Has cerrado la seleccion de imagenes");
       } else {
-        uploadImage(result.uri, uid).then(() => {
-          updatePhotoUrl(uid);
-        });
+        uploadImage(result.uri)
+          .then(() => {
+            updatePhotoUrl();
+          })
+          .catch(() => {
+            toastRef.current.show("Error al actualizar el avatar.");
+          });
       }
     }
   };
 
-  const uploadImage = async (uri, nameImage) => {
-    setTextLoading("Actualizando Avatar");
-    setIsLoading(true);
+  const uploadImage = async (uri) => {
+    setLoadingText("Actualizando Avatar");
+    setLoading(true);
+
     const response = await fetch(uri);
     const blob = await response.blob();
 
-    const ref = firebase
-      .storage()
-      .ref()
-      .child(`avatar/${nameImage}`);
+    const ref = firebase.storage().ref().child(`avatar/${uid}`);
     return ref.put(blob);
   };
 
-  const updatePhotoUrl = uid => {
+  const updatePhotoUrl = () => {
     firebase
       .storage()
       .ref(`avatar/${uid}`)
       .getDownloadURL()
-      .then(async result => {
+      .then(async (response) => {
         const update = {
-          photoURL: result
+          photoURL: response,
         };
         await firebase.auth().currentUser.updateProfile(update);
-        setReloadData(true);
-        setIsLoading(false);
+        setLoading(false);
       })
       .catch(() => {
-        toastRef.current.show("Error al recuperar el avatar del servidor");
+        toastRef.current.show("Error al actualizar el avatar.");
       });
   };
 
@@ -77,17 +78,17 @@ export default function InfoUser(props) {
         showEditButton
         onEditPress={changeAvatar}
         containerStyle={styles.userInfoAvatar}
-        source={{
-          uri: photoURL
-            ? photoURL
-            : "https://api.adorable.io/avatars/266/abott@adorable.png"
-        }}
+        source={
+          photoURL
+            ? { uri: photoURL }
+            : require("../../../assets/img/avatar-default.jpg")
+        }
       />
       <View>
         <Text style={styles.displayName}>
           {displayName ? displayName : "Anónimo"}
         </Text>
-        <Text>{email ? email : "Social Login"}</Text>
+        <Text>{email ? email : "Socia Login"}</Text>
       </View>
     </View>
   );
@@ -100,12 +101,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "#f2f2f2",
     paddingTop: 30,
-    paddingBottom: 30
+    paddingBottom: 30,
   },
   userInfoAvatar: {
-    marginRight: 20
+    marginRight: 20,
   },
   displayName: {
-    fontWeight: "bold"
-  }
+    fontWeight: "bold",
+    paddingBottom: 5,
+  },
 });

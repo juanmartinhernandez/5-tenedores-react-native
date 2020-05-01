@@ -2,41 +2,55 @@ import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Input, Button } from "react-native-elements";
 import * as firebase from "firebase";
-import { reauthenticate } from "../../utils/Api";
+import { validateEmail } from "../../utils/validations";
+import { reauthenticate } from "../../utils/api";
 
 export default function ChangeEmailForm(props) {
-  const { email, setIsVisibleModal, setReloadData, toastRef } = props;
-  const [newEmail, setNewEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState({});
-  const [hidePassword, setHidePassword] = useState(true);
+  const { email, setShowModal, toastRef, setRealoadUserInfo } = props;
+  const [formData, setFormData] = useState(defaultValue());
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const updateEmail = () => {
-    setError({});
-    if (!newEmail || email === newEmail) {
-      setError({ email: "El email no puede ser igual o estar vacio." });
+  const onChange = (e, type) => {
+    setFormData({ ...formData, [type]: e.nativeEvent.text });
+  };
+
+  const onSubmit = () => {
+    setErrors({});
+    if (!formData.email || email === formData.email) {
+      setErrors({
+        email: "El email no ha cambiado.",
+      });
+    } else if (!validateEmail(formData.email)) {
+      setErrors({
+        email: "Email incorrecto.",
+      });
+    } else if (!formData.password) {
+      setErrors({
+        password: "La contraseña no puede estar vacia.",
+      });
     } else {
       setIsLoading(true);
-      reauthenticate(password)
+      reauthenticate(formData.password)
         .then(() => {
           firebase
             .auth()
-            .currentUser.updateEmail(newEmail)
+            .currentUser.updateEmail(formData.email)
             .then(() => {
               setIsLoading(false);
-              setReloadData(true);
+              setRealoadUserInfo(true);
               toastRef.current.show("Email actualizado correctamente");
-              setIsVisibleModal(false);
+              setShowModal(false);
             })
             .catch(() => {
-              setError({ email: "Error al actualizar el email." });
+              setErrors({ email: "Error al actualizar el email." });
               setIsLoading(false);
             });
         })
         .catch(() => {
-          setError({ password: "La contraseña no es correcta." });
           setIsLoading(false);
+          setErrors({ password: "La contraseña no es correcta." });
         });
     }
   };
@@ -46,54 +60,61 @@ export default function ChangeEmailForm(props) {
       <Input
         placeholder="Correo electronico"
         containerStyle={styles.input}
-        defaultValue={email && email}
-        onChange={e => setNewEmail(e.nativeEvent.text)}
+        defaultValue={email || ""}
         rightIcon={{
           type: "material-community",
           name: "at",
-          color: "#c2c2c2"
+          color: "#c2c2c2",
         }}
-        errorMessage={error.email}
+        onChange={(e) => onChange(e, "email")}
+        errorMessage={errors.email}
       />
       <Input
         placeholder="Contraseña"
         containerStyle={styles.input}
         password={true}
-        secureTextEntry={hidePassword}
-        onChange={e => setPassword(e.nativeEvent.text)}
+        secureTextEntry={showPassword ? false : true}
         rightIcon={{
           type: "material-community",
-          name: hidePassword ? "eye-outline" : "eye-off-outline",
+          name: showPassword ? "eye-off-outline" : "eye-outline",
           color: "#c2c2c2",
-          onPress: () => setHidePassword(!hidePassword)
+          onPress: () => setShowPassword(!showPassword),
         }}
-        errorMessage={error.password}
+        onChange={(e) => onChange(e, "password")}
+        errorMessage={errors.password}
       />
       <Button
         title="Cambiar email"
         containerStyle={styles.btnContainer}
         buttonStyle={styles.btn}
-        onPress={updateEmail}
+        onPress={onSubmit}
         loading={isLoading}
       />
     </View>
   );
 }
 
+function defaultValue() {
+  return {
+    email: "",
+    password: "",
+  };
+}
+
 const styles = StyleSheet.create({
   view: {
     alignItems: "center",
     paddingTop: 10,
-    paddingBottom: 10
+    paddingBottom: 10,
   },
   input: {
-    marginBottom: 10
+    marginBottom: 10,
   },
   btnContainer: {
     marginTop: 20,
-    width: "95%"
+    width: "95%",
   },
   btn: {
-    backgroundColor: "#00a680"
-  }
+    backgroundColor: "#00a680",
+  },
 });

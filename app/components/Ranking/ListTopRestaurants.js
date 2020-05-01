@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
-  View,
   Text,
+  View,
   FlatList,
-  TouchableOpacity
+  TouchableOpacity,
 } from "react-native";
 import { Card, Image, Icon, Rating } from "react-native-elements";
-import * as firebase from "firebase";
 
 export default function ListTopRestaurants(props) {
   const { restaurants, navigation } = props;
@@ -15,7 +14,7 @@ export default function ListTopRestaurants(props) {
   return (
     <FlatList
       data={restaurants}
-      renderItem={restaurant => (
+      renderItem={(restaurant) => (
         <Restaurant restaurant={restaurant} navigation={navigation} />
       )}
       keyExtractor={(item, index) => index.toString()}
@@ -25,20 +24,8 @@ export default function ListTopRestaurants(props) {
 
 function Restaurant(props) {
   const { restaurant, navigation } = props;
-  const { name, description, images, rating } = restaurant.item;
-  const [imageRestaurant, setImageRestaurant] = useState(null);
+  const { id, name, rating, images, description } = restaurant.item;
   const [iconColor, setIconColor] = useState("#000");
-
-  useEffect(() => {
-    const image = images[0];
-    firebase
-      .storage()
-      .ref(`restaurant-images/${image}`)
-      .getDownloadURL()
-      .then(response => {
-        setImageRestaurant(response);
-      });
-  }, []);
 
   useEffect(() => {
     if (restaurant.index === 0) {
@@ -48,13 +35,14 @@ function Restaurant(props) {
     } else if (restaurant.index === 2) {
       setIconColor("#cd7f32");
     }
-  });
+  }, []);
 
   return (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate("Restaurant", {
-          restaurant: restaurant.item
+        navigation.navigate("restaurants", {
+          screen: "restaurant",
+          params: { id },
         })
       }
     >
@@ -69,16 +57,15 @@ function Restaurant(props) {
         <Image
           style={styles.restaurantImage}
           resizeMode="cover"
-          source={{ uri: imageRestaurant }}
+          source={
+            images[0]
+              ? { uri: images[0] }
+              : require("../../../assets/img/no-image.png")
+          }
         />
         <View style={styles.titleRating}>
           <Text style={styles.title}>{name}</Text>
-          <Rating
-            imageSize={20}
-            startingValue={rating}
-            readonly
-            style={styles.rating}
-          />
+          <Rating imageSize={20} startingValue={rating} readonly />
         </View>
         <Text style={styles.description}>{description}</Text>
       </Card>
@@ -89,33 +76,30 @@ function Restaurant(props) {
 const styles = StyleSheet.create({
   containerCard: {
     marginBottom: 30,
-    borderWidth: 0
+    borderWidth: 0,
   },
   containerIcon: {
     position: "absolute",
     top: -30,
     left: -30,
-    zIndex: 1
+    zIndex: 1,
   },
   restaurantImage: {
     width: "100%",
-    height: 200
+    height: 200,
   },
   titleRating: {
     flexDirection: "row",
-    marginTop: 10
+    justifyContent: "space-between",
+    marginTop: 10,
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold"
-  },
-  rating: {
-    position: "absolute",
-    right: 0
+    fontWeight: "bold",
   },
   description: {
     color: "grey",
     marginTop: 0,
-    textAlign: "justify"
-  }
+    textAlign: "justify",
+  },
 });
