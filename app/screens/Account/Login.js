@@ -12,17 +12,12 @@ export default function Login() {
   return (
     <ScrollView>
       <Image
-        source={require("../../../assets/img/5-tenedores-letras-icono-logo.png")}
+        source={require("../../../assets/img/iweb.png")}
         resizeMode="contain"
         style={styles.logo}
       />
       <View style={styles.viewContainer}>
         <LoginForm toastRef={toastRef} />
-        <CreateAccount />
-      </View>
-      <Divider style={styles.divider} />
-      <View style={styles.viewContainer}>
-        <LoginFacebook toastRef={toastRef} />
       </View>
       <Toast ref={toastRef} position="center" opacity={0.9} />
     </ScrollView>
@@ -61,11 +56,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   btnRegister: {
-    color: "#00a680",
+    color: "black",
     fontWeight: "bold",
-  },
-  divider: {
-    backgroundColor: "#00a680",
-    margin: 40,
   },
 });
